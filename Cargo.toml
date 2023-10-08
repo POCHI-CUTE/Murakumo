@@ -3,6 +3,10 @@ name = "murakumo"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "murakumo"
+path = "src/main.rs"
 
 [dependencies]
+getopts = "0.2.21"
+image = "0.14"
