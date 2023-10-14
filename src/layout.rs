@@ -33,6 +33,7 @@ pub struct EdgeSizes {
     pub bottom: f32,
 }
 
+#[derive(Debug)]
 /// A node in the layout tree.
 pub struct LayoutBox<'a> {
     pub dimensions: Dimensions,
@@ -40,6 +41,7 @@ pub struct LayoutBox<'a> {
     pub children: Vec<LayoutBox<'a>>,
 }
 
+#[derive(Debug)]
 pub enum BoxType<'a> {
     BlockNode(&'a StyledNode<'a>),
     InlineNode(&'a StyledNode<'a>),
@@ -70,10 +72,11 @@ pub fn layout_tree<'a>(
 ) -> LayoutBox<'a> {
     // The layout algorithm expects the container height to start at 0.
     // TODO: Save the initial containing block height, for calculating percent heights.
-    containing_block.content.height = 0.0;
+    containing_block.content.height = 0.0; // Dimensionsがコピートレイトなのでこれはあくまでコピーを変更します。
 
     let mut root_box = build_layout_tree(node);
     root_box.layout(containing_block);
+    // println!("{:#?}", containing_block.content); 
     root_box
 }
 
@@ -283,8 +286,10 @@ impl<'a> LayoutBox<'a> {
         // If the height is set to an explicit length, use that exact length.
         // Otherwise, just keep the value set by `layout_block_children`.
         if let Some(Length(h, Px)) = self.get_style_node().value("height") {
+            println!("h: {}", h);
             self.dimensions.content.height = h;
         }
+        println!("height: {}", self.dimensions.content.height);
     }
 
     /// Where a new inline child should go.

@@ -52,12 +52,14 @@ impl Copy for Color {}
 pub type Specificity = (usize, usize, usize);
 
 impl Selector {
+    // https://zenn.dev/yend724/articles/20221218-pgvxke7xs8svn4nn
     pub fn specificity(&self) -> Specificity {
         // http://www.w3.org/TR/selectors/#specificity
         let Selector::Simple(ref simple) = *self;
         let a = simple.id.iter().count();
         let b = simple.class.len();
         let c = simple.tag_name.iter().count();
+        println!("a: {}, b: {}, c: {}", a, b, c);
         (a, b, c)
     }
 }
@@ -93,7 +95,9 @@ impl Parser {
     fn parse_rules(&mut self) -> Vec<Rule> {
         let mut rules = Vec::new();
         loop {
+            // 空白を消費する（要はposに+1される。）
             self.consume_whitespace();
+            // 最後なら終了
             if self.eof() {
                 break;
             }
@@ -114,9 +118,11 @@ impl Parser {
     fn parse_selectors(&mut self) -> Vec<Selector> {
         let mut selectors = Vec::new();
         loop {
+            // セレクターを追加する。（複数ある場合のループ html div {} みたいにはできない）
             selectors.push(Selector::Simple(self.parse_simple_selector()));
             self.consume_whitespace();
             match self.next_char() {
+                // TODO:空白でも出来るようにする。
                 ',' => {
                     self.consume_char();
                     self.consume_whitespace();
@@ -126,7 +132,10 @@ impl Parser {
             }
         }
         // Return selectors with highest specificity first, for use in matching.
+        // セレクタの重みづけ
+        // 詳細度 (Specificity) 
         selectors.sort_by(|a, b| b.specificity().cmp(&a.specificity()));
+        
         selectors
     }
 
@@ -137,27 +146,34 @@ impl Parser {
             id: None,
             class: Vec::new(),
         };
+        // TODO:　セレクターはparse_simple_selectorでは一つだけ取得する。
         while !self.eof() {
             match self.next_char() {
+                // id
                 '#' => {
+                    // #を消費する
                     self.consume_char();
+                    // Some(idの中身)
                     selector.id = Some(self.parse_identifier());
                 }
                 '.' => {
+                    // .を消費する
                     self.consume_char();
+                    // classの中身。複数ある場合はpushする。（絞り込みのため）
                     selector.class.push(self.parse_identifier());
                 }
                 '*' => {
                     // universal selector
                     self.consume_char();
                 }
+                // 文字列だった場合タグと判断してタグ名を取得する。
                 c if valid_identifier_char(c) => {
                     selector.tag_name = Some(self.parse_identifier());
                 }
                 _ => break,
             }
         }
-        selector
+        return selector;
     }
 
     /// Parse a list of declarations enclosed in `{ ... }`.
@@ -187,12 +203,11 @@ impl Parser {
 
         Declaration {
             name: property_name,
-            value: value,
+            value,
         }
     }
 
     // Methods for parsing values:
-
     fn parse_value(&mut self) -> Value {
         match self.next_char() {
             '0'..='9' => self.parse_length(),
@@ -206,17 +221,20 @@ impl Parser {
     }
 
     fn parse_float(&mut self) -> f32 {
+        //　数値を消費
         let s = self.consume_while(|c| matches!(c, '0'..='9' | '.'));
         s.parse().unwrap()
     }
 
     fn parse_unit(&mut self) -> Unit {
+        // 大文字小文字を区別せずに文字列を比較する。文字列はparse_identifierで消費している。
         match &*self.parse_identifier().to_ascii_lowercase() {
             "px" => Unit::Px,
             _ => panic!("unrecognized unit"),
         }
     }
 
+    // 色を上手くパースしている。
     fn parse_color(&mut self) -> Value {
         assert_eq!(self.consume_char(), '#');
         Value::ColorValue(Color {
@@ -231,10 +249,12 @@ impl Parser {
     fn parse_hex_pair(&mut self) -> u8 {
         let s = &self.input[self.pos..self.pos + 2];
         self.pos += 2;
+        //　16進数を変換
         u8::from_str_radix(s, 16).unwrap()
     }
 
     /// Parse a property name or keyword.
+    // 文字、数字、ハイフン、アンダースコアを含んだ文字列を返す。
     fn parse_identifier(&mut self) -> String {
         self.consume_while(valid_identifier_char)
     }
