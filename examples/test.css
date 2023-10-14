@@ -9,13 +9,20 @@
   html {
     width: 600px;
     padding: 10px;
-    border-width: 1px;
+    border-width: 1PX;
+    margin-top: 50px;
     margin: auto;
-    background: #ffffff;
+    background: #ffff00;
   }
-  
-  head {
-    display: none;
+
+  #zzz {
+    background: #000000;
+    color: #ffffff;
+  }
+
+  .test {
+    border: #666666;
+    border-width: 2px;
   }
   
   .outer {
