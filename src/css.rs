@@ -133,9 +133,9 @@ impl Parser {
         }
         // Return selectors with highest specificity first, for use in matching.
         // セレクタの重みづけ
-        // 詳細度 (Specificity) 
+        // 詳細度 (Specificity)
         selectors.sort_by(|a, b| b.specificity().cmp(&a.specificity()));
-        
+
         selectors
     }
 
