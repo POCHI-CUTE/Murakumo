@@ -63,7 +63,7 @@ pub fn style_tree<'a>(root: &'a Node, stylesheet: &'a Stylesheet) -> StyledNode<
             .children
             .iter()
             .map(|child| style_tree(child, stylesheet))
-            .collect(),// map呼び出しから返ってきたイテレータを繰り返した結果をベクタに集結させる
+            .collect(), // map呼び出しから返ってきたイテレータを繰り返した結果をベクタに集結させる
     }
 }
 
@@ -74,7 +74,7 @@ pub fn style_tree<'a>(root: &'a Node, stylesheet: &'a Stylesheet) -> StyledNode<
 fn specified_values(elem: &ElementData, stylesheet: &Stylesheet) -> PropertyMap {
     let mut values = HashMap::new();
     let mut rules = matching_rules(elem, stylesheet);
-    
+
     // Go through the rules from lowest to highest specificity.
     rules.sort_by(|&(a, _), &(b, _)| a.cmp(&b));
 
